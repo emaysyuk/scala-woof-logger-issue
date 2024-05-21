@@ -1,4 +1,5 @@
 val versionHttp4S = "1.0.0-M38"
+val versionLiquibase4s = "1.0.0"
 
 lazy val root = (project in file("."))
   .settings(
@@ -15,5 +16,8 @@ lazy val root = (project in file("."))
       "org.http4s" %% s"http4s-dsl" % versionHttp4S,
       "org.http4s" %% s"http4s-circe" % versionHttp4S,
       "co.fs2" %% "fs2-core" % "3.5.0",
+      "mysql" % "mysql-connector-java" % "8.0.33",
+      "io.github.liquibase4s" %% "liquibase4s-core" % versionLiquibase4s,
+      "io.github.liquibase4s" %% "liquibase4s-cats-effect" % versionLiquibase4s,
     )
   )
