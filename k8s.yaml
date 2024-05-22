@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: woof-logger-app
+  labels:
+    app: woof-logger
+spec:
+  minReadySeconds: 10
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: woof-logger
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      name: woof-logger
+      labels:
+        app: woof-logger
+    spec:
+      automountServiceAccountToken: true
+      containers:
+        - env:
+            - name: SCALA_ENV
+              value: staging
+          image: scala-woof-logger-issue:latest
+          imagePullPolicy: Never # prevents pull from docker.io, forces local image use
+          livenessProbe:
+            failureThreshold: 4
+            httpGet:
+              path: /z/ping
+              port: http-port
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: woof-logger-app
+          ports:
+            - containerPort: 9006
+              name: http-port
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /z/ready
+              port: http-port
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          resources:
+            limits:
+              cpu: "2.0"
+              memory: 2048Mi
+            requests:
+              cpu: "1.0"
+              memory: 2048Mi
+          securityContext:
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 2000
+      dnsConfig:
+        options:
+          - name: single-request-reopen
+          - name: ndots
+            value: "2"
+      securityContext:
+        fsGroup: 1000
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 60
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: woof-logger-app
+spec:
+  ports:
+    - appProtocol: http
+      name: http-port
+      port: 80
+      targetPort: http-port
+  selector:
+    app: woof-logger
