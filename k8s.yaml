@@ -29,7 +29,7 @@ spec:
             - name: SCALA_ENV
               value: staging
           image: scala-woof-logger-issue:latest
-          imagePullPolicy: Never # prevents pull from docker.io, forces local image use
+          imagePullPolicy: IfNotPresent # prevents pull from docker.io, forces local image use
           livenessProbe:
             failureThreshold: 4
             httpGet:
